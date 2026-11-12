@@ -11,6 +11,7 @@ SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
 
 
 def get_calendar_service():
+    ''' Returns an authorized Google Calendar API service instance. '''
     creds = None
 
     if os.path.exists("token.json"):
@@ -29,14 +30,24 @@ def get_calendar_service():
     return build("calendar", "v3", credentials=creds)
 
 
-def create_test_event():
+def create_study_event(action, duration_hours, exam_date):
+    ''' Creates a study event in the user's Google Calendar. '''
+    if action == "Rest":
+        print("\nRest day selected. No study session was scheduled.")
+        return
+
     service = get_calendar_service()
 
     start_time = datetime.datetime.now() + datetime.timedelta(hours=1)
-    end_time = start_time + datetime.timedelta(hours=1)
+    end_time = start_time + datetime.timedelta(hours=duration_hours)
 
     event = {
-        "summary": "Test Study Session",
+        "summary": f"Study Plan: {action}",
+        "description": (
+            f"Recommended action: {action}\n"
+            f"Study duration: {duration_hours} hour(s)\n"
+            f"Exam date: {exam_date.isoformat()}"
+        ),
         "start": {
             "dateTime": start_time.isoformat(),
             "timeZone": "America/Vancouver"
@@ -49,11 +60,5 @@ def create_test_event():
 
     created_event = service.events().insert(calendarId="primary", body=event).execute()
 
-    print("Test event created successfully!")
+    print("\nCalendar event created successfully!")
     print(created_event.get("htmlLink"))
-
-
-if __name__ == "__main__":
-    create_test_event()
-
-# Run: python3 src/calendar_integration.py
